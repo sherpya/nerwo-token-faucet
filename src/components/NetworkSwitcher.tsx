@@ -2,31 +2,32 @@
 
 import { useEffect } from 'react';
 import { useWizard } from 'react-use-wizard';
-import { sepolia, useNetwork, useSwitchNetwork } from 'wagmi';
+import { useChainId, useSwitchChain } from 'wagmi';
+import { chainMetadata, selectedChain, selectedChainKey } from '@/chains';
 
 export function NetworkSwitcher() {
-  const { chain } = useNetwork();
-  const { error, isLoading, pendingChainId, switchNetwork } = useSwitchNetwork();
+  const chainId = useChainId();
+  const { error, isPending, switchChain } = useSwitchChain();
   const { nextStep } = useWizard();
 
   useEffect(() => {
-    if (chain?.id === sepolia.id) {
+    if (chainId === selectedChain.id) {
       nextStep();
     }
-  }, [chain, nextStep]);
+  }, [chainId, nextStep]);
 
   return (
     <div className="wizard-content">
-      <h1 className="text-center">Switch to Sepolia Network</h1>
-      <div className="text-center font-medium">Switch to Sepolia network clicking the button below.</div>
-      {switchNetwork && (
-        <div className="text-center">
-          <button key={sepolia.id} onClick={() => switchNetwork(sepolia.id)}>
-            Switch
-            {isLoading && sepolia.id === pendingChainId && ' (switching)'}
-          </button>
-        </div>
-      )}
+      <h1 className="text-center">Switch Network</h1>
+      <div className="text-center font-medium">
+        Switch to {chainMetadata[selectedChainKey].displayName} to continue.
+      </div>
+      <div className="text-center">
+        <button key={selectedChain.id} onClick={() => switchChain({ chainId: selectedChain.id })}>
+          Switch
+          {isPending && ' (switching)'}
+        </button>
+      </div>
       <div>{error?.message}</div>
     </div>
   );

@@ -1,16 +1,45 @@
-This is a [Next.js](https://nextjs.org) + [wagmi](https://wagmi.sh) project bootstrapped with [`create-wagmi`](https://github.com/wagmi-dev/wagmi/tree/main/packages/create-wagmi)
+This is a [Next.js](https://nextjs.org) + [wagmi](https://wagmi.sh) test-token faucet powered by Bun.
 
-# Getting Started
+## Setup
 
-Run `npm run dev` in your terminal, and then open [localhost:3000](http://localhost:3000) in your browser.
+1. Install dependencies:
 
-Once the webpage has loaded, changes made to files inside the `src/` directory (e.g. `src/pages/index.tsx`) will automatically update the webpage.
+```bash
+bun install
+```
 
-# Learn more
+2. Copy environment variables and customize:
 
-To learn more about [Next.js](https://nextjs.org) or [wagmi](https://wagmi.sh), check out the following resources:
+```bash
+cp .env.example .env
+```
 
-- [wagmi Documentation](https://wagmi.sh) – learn about wagmi Hooks and API.
-- [wagmi Examples](https://wagmi.sh/examples/connect-wallet) – a suite of simple examples using wagmi.
-- [Next.js Documentation](https://nextjs.org/docs) learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Start development server:
+
+```bash
+bun run dev
+```
+
+## Chain Configuration
+
+Configure the target chain via `.env`:
+
+- `NEXT_PUBLIC_FAUCET_CHAIN=foundry` for local Foundry/Anvil
+- `NEXT_PUBLIC_FAUCET_CHAIN=baseSepolia` for Base Sepolia
+
+RPC URLs are also configurable:
+
+- `NEXT_PUBLIC_FOUNDRY_RPC_URL`
+- `NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL`
+
+## Static Export
+
+The app is configured for static export (`output: 'export'`).
+
+Build static files with:
+
+```bash
+bun run build
+```
+
+Generated static assets are written to `out/`.

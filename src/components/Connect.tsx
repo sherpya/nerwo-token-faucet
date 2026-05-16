@@ -4,18 +4,22 @@ import Link from 'next/link';
 import { BaseError } from 'viem';
 import { useState } from 'react';
 import { useAccount, useConnect, useDisconnect, useEnsName } from 'wagmi';
-import { metamask } from '../wagmi';
 
 function shortAddress(address: string | undefined) {
   return address ? `0x${address.substring(3, 7)}...${address.substring(address.length - 4)}` : '';
 }
 
 export function Connect() {
-  const { address, connector, isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
   const { data: ensName } = useEnsName({ address });
-  const { connect, error, isLoading, pendingConnector } = useConnect({ connector: metamask });
+  const { connect, connectors, error, isPending, variables } = useConnect();
   const { disconnect } = useDisconnect();
   const [showDropdown, setShowDropdown] = useState(false);
+  const availableConnectors = connectors.map((connector, index) => ({
+    key: `${index}`,
+    name: (connector as { name?: string }).name ?? 'Wallet',
+    connector,
+  }));
 
   const toggleDropDown = () => setShowDropdown(!showDropdown);
 
@@ -36,14 +40,22 @@ export function Connect() {
         </div>
       )}
 
-      {metamask.ready && connector?.id !== metamask.id && <button key={metamask.id} onClick={() => connect({ connector: metamask })}>
-        Connect
-        {isLoading && metamask.id === pendingConnector?.id && ' (connecting)'}
-      </button>}
+      {!isConnected && availableConnectors.length > 0 && (
+        <div className="flex gap-2">
+          {availableConnectors.map((walletConnector) => (
+            <button key={walletConnector.key} onClick={() => connect({ connector: walletConnector.connector })}>
+              {walletConnector.name}
+              {isPending && variables?.connector && ' (connecting)'}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {!metamask.ready && <Link href="https://metamask.io/" target="_blank">
-        <button>Install Metamask</button>
-      </Link>}
+      {!isConnected && availableConnectors.length === 0 && (
+        <Link href="https://metamask.io/" target="_blank">
+          <button>Install Metamask</button>
+        </Link>
+      )}
 
       {error && <div>{(error as BaseError).shortMessage}</div>}
     </div>

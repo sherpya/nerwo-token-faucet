@@ -5,8 +5,10 @@ import { Providers } from './providers';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const unbounded = Unbounded({ subsets: ['latin'], variable: '--font-unbounded' });
+const metadataBase = new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000');
 
 export const metadata: Metadata = {
+  metadataBase,
   title: 'Nerwo Token Faucet',
   description: 'Nerwo platform test token faucet',
   openGraph: {

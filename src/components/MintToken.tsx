@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useWizard } from 'react-use-wizard';
 import { BaseError, parseUnits } from 'viem';
-import { useContractWrite, usePrepareContractWrite, useWaitForTransaction } from 'wagmi';
+import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 
 import { nerwoTokenConfig } from './contracts';
 import { useDebounce } from '../hooks/useDebounce';
@@ -15,14 +15,11 @@ export function MintToken() {
   const debouncedAmount = useDebounce(amount);
   const { nextStep } = useWizard();
 
-  const { config } = usePrepareContractWrite({
-    ...nerwoTokenConfig,
-    functionName: 'mint',
-    enabled: Boolean(debouncedAmount),
-    args: [parseUnits(debouncedAmount, process.env.NEXT_PUBLIC_NERWO_TOKEN_DECIMALS)],
-  });
-  const { write, data, error, isLoading, isError } = useContractWrite(config);
-  const { isLoading: isPending, isSuccess } = useWaitForTransaction({ hash: data?.hash });
+  const tokenDecimals = Number.parseInt(process.env.NEXT_PUBLIC_NERWO_TOKEN_DECIMALS ?? '18', 10);
+  const { data: hash, error, isPending, isError, writeContract } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const canMint = Boolean(debouncedAmount && nerwoTokenConfig.address);
 
   useEffect(() => {
     if (isSuccess) {
@@ -38,20 +35,28 @@ export function MintToken() {
       <div className="text-center">
         <form onSubmit={(e) => {
           e.preventDefault();
-          write?.();
+          if (!canMint) {
+            return;
+          }
+
+          writeContract({
+            ...nerwoTokenConfig,
+            functionName: 'mint',
+            args: [parseUnits(debouncedAmount, tokenDecimals)],
+          });
         }}>
           <input
             placeholder="Amount"
             defaultValue={DEFAULT_AMOUNT}
             onChange={(e) => setTokenId(e.target.value)} />
-          <button className="button-submit" disabled={!write || isLoading || isPending} type="submit">
+          <button className="button-submit" disabled={!canMint || isPending || isConfirming} type="submit">
             Mint
           </button>
         </form>
       </div>
 
-      {isLoading && <div>Check wallet...</div>}
-      {isPending && <div>Transaction pending...</div>}
+      {isPending && <div>Check wallet...</div>}
+      {isConfirming && <div>Transaction pending...</div>}
       {isError && <div>{(error as BaseError)?.shortMessage}</div>}
     </div>
   );

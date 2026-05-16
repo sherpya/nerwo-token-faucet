@@ -1,32 +1,33 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { useWalletClient } from 'wagmi';
 
 export function Congrats() {
-    const [origin, setOrigin] = useState<string | null>(null);
     const { data: walletClient } = useWalletClient();
+    const tokenAddress = process.env.NEXT_PUBLIC_NERWO_TOKEN_ADDRESS;
+    const tokenDecimals = Number.parseInt(process.env.NEXT_PUBLIC_NERWO_TOKEN_DECIMALS ?? '18', 10);
+    const tokenSymbol = process.env.NEXT_PUBLIC_NERWO_TOKEN_SYMBOL ?? 'USDT.n';
+
     const watchAsset = useCallback(async () => {
-        if (origin) {
+        const origin = typeof window !== 'undefined' ? window.origin : null;
+
+        if (origin && tokenAddress) {
             try {
                 await walletClient?.watchAsset({
                     type: 'ERC20',
                     options: {
-                        address: process.env.NEXT_PUBLIC_NERWO_TOKEN_ADDRESS,
-                        decimals: process.env.NEXT_PUBLIC_NERWO_TOKEN_DECIMALS,
-                        symbol: process.env.NEXT_PUBLIC_NERWO_TOKEN_SYMBOL,
+                        address: tokenAddress,
+                        decimals: tokenDecimals,
+                        symbol: tokenSymbol,
                         image: `${origin}/USDTn.svg`
                     },
                 });
-            } catch (_) { };
+            } catch {
+                // Ignore wallet-side rejection/errors for this optional UX action.
+            }
         }
-    }, [walletClient, origin]);
-
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            setOrigin(window.origin);
-        }
-    }, []);
+    }, [walletClient, tokenAddress, tokenDecimals, tokenSymbol]);
 
     return (
         <div className="wizard-content">
@@ -34,7 +35,7 @@ export function Congrats() {
             <div className="text-center font-medium">Thank you anon, you have do it all the process.</div>
             <div className="text-center font-bold">Now you are ready to test Nerwo.</div>
             <div className="text-center">
-                <button onClick={(e) => watchAsset()}>Add Token on Metamask</button>
+                <button onClick={() => { void watchAsset(); }}>Add Token on Metamask</button>
             </div>
         </div>
     );

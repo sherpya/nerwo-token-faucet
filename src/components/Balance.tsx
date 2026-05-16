@@ -3,34 +3,40 @@
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { useWizard } from 'react-use-wizard';
-import { sepolia, useAccount, useBalance, useNetwork } from 'wagmi';
+import { useAccount, useBalance, useChainId } from 'wagmi';
+import { chainMetadata, selectedChain, selectedChainKey } from '@/chains';
 
 const MIN_ETH = BigInt(2 * 10 ** 17);
 
 export function Balance() {
-    const { chain } = useNetwork();
-    const account = useAccount();
-    const { data } = useBalance({ chainId: sepolia.id, address: account.address, watch: true });
+    const chainId = useChainId();
+    const { address } = useAccount();
+    const { data } = useBalance({
+        chainId: selectedChain.id,
+        address,
+        query: {
+            enabled: Boolean(address),
+            refetchInterval: 5000,
+        },
+    });
 
     const { nextStep } = useWizard();
 
-    console.log(data);
-
     useEffect(() => {
-        if ((chain?.id === sepolia.id) && (data && (data.value >= MIN_ETH))) {
+        if ((chainId === selectedChain.id) && (data && (data.value >= MIN_ETH))) {
             nextStep();
         }
-    }, [chain, data, nextStep]);
+    }, [chainId, data, nextStep]);
 
     return (
         <div className="wizard-content">
-            <h1 className="text-center">You need Sepolia ETH for gas</h1>
-            <div className="text-center font-medium">Click the button below to go the Sepolia faucet and earn some tokens.
+            <h1 className="text-center">You need {chainMetadata[selectedChainKey].gasTokenName} for gas</h1>
+            <div className="text-center font-medium">Click the button below to open a faucet and claim test ETH.
                 These tokens are used to do any kind of testing within Nerwo.</div>
             <div className="text-center font-bold">Once you have it, come back here for the final step.</div>
             <div className="text-center">
-                <Link href="https://sepoliafaucet.com/" target="_blank">
-                    <button>Go to Sepolia Faucet</button>
+                <Link href={chainMetadata[selectedChainKey].faucetUrl} target="_blank">
+                    <button>Go to Faucet</button>
                 </Link>
             </div>
         </div>

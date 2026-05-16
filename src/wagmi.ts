@@ -1,20 +1,14 @@
-import { configureChains, createConfig } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
-import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
-import { alchemyProvider } from 'wagmi/providers/alchemy';
-
-const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [sepolia],
-  [
-    alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY }),
-  ],
-);
-
-export const metamask = new MetaMaskConnector({ chains });
+import { createConfig, http } from 'wagmi';
+import { injected, metaMask } from 'wagmi/connectors';
+import { baseSepoliaRpcUrl, foundryRpcUrl, supportedChains } from './chains';
+import { baseSepolia, foundry } from 'wagmi/chains';
 
 export const config = createConfig({
-  autoConnect: true,
-  connectors: [metamask],
-  publicClient,
-  webSocketPublicClient,
+  chains: supportedChains,
+  connectors: [metaMask(), injected()],
+  transports: {
+    [foundry.id]: http(foundryRpcUrl),
+    [baseSepolia.id]: http(baseSepoliaRpcUrl),
+  },
+  ssr: true,
 });

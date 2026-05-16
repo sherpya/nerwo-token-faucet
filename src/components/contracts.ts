@@ -1,5 +1,7 @@
+import type { Address } from 'viem';
+
 export const nerwoTokenConfig = {
-  address: process.env.NEXT_PUBLIC_NERWO_TOKEN_ADDRESS,
+  address: process.env.NEXT_PUBLIC_NERWO_TOKEN_ADDRESS as Address,
   abi: [
     {
       "inputs": [
